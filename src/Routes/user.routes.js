@@ -87,20 +87,16 @@ user.post("/login", async (req, res) => {
  
         if(domain === "masaischool.com"){
             if (domain) {
-                const token = jwt.sign({email, name: isExist.name, role: "Admin"}, "SECRET", {
-                  expiresIn: "7 days",
-                });
-                return res.send({token});
+                const token = jwt.sign({email, name: isExist.name, role: "Admin"}, "SECRET");
+                return res.send({token:token,user:isExist});
               }
               return res.send({message: "Failed"});
         }
         else{
             bcrypt.compare(password, isExist.password, function (err, result) {
                 if (result) {
-                  const token = jwt.sign({email, name: isExist.name, role: isExist.role}, "SECRET", {
-                    expiresIn: "7 days",
-                  });
-                  return res.send(token,"Login Sucess");
+                  const token = jwt.sign({email, name: isExist.name, role: isExist.role}, "SECRET");
+                  return res.send({token:token,user:isExist});
                 }
                 return res.send({message: "Failed"});
             });
