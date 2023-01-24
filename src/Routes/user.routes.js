@@ -13,8 +13,14 @@ user.get("/",async (req,res)=>{
 })
 user.post("/signup", async (req, res) => {
 
-    const { name, email, password ,role} = req.body
- 
+    const { name, email, password } = req.body
+  let role;
+
+    if (email.includes("@masaischool.com")) {
+        role = 'admin'
+    } else {
+         role = 'user'
+    }
  
     try {
         const existingUser = await UModals.findOne({ email })
@@ -34,11 +40,12 @@ user.post("/signup", async (req, res) => {
                 } else {
                     try {
 
-                        await UModals.create({...req.body})
+                      let u=  await UModals.create({name,email,password:hash,role})
 
                         res.status(200).send({
                             message: ` account create successfully`,
-                            status: 'Ok'
+                            status: 'Ok',
+                            user:u
                         })
 
                     } catch (error) {
@@ -77,7 +84,7 @@ user.post("/login", async (req, res) => {
     }
     const checkDomain = email.split("@");
     const domain = checkDomain[checkDomain.length - 1];
- 
+    console.log(domain, email)
         if(domain === "masaischool.com"){
             if (domain) {
                 const token = jwt.sign({email, name: isExist.name, role: "Admin"}, "SECRET", {
