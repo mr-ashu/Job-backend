@@ -3,27 +3,25 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const UModals =require("../Schema/user.modal")  
-
-const SECRET = process.env.SECRET
+ 
 
 const user = express.Router()
 
+user.get("/",async (req,res)=>{
+    const user=await UModals.find()
+    res.send(user)
+})
 user.post("/signup", async (req, res) => {
 
-    const { name, email, password } = req.body
-    let profile;
-
-    if (email.includes("@masaischool.com")) {
-        profile = 'admin'
-    } else {
-        profile = 'user'
-    }
+    const { name, email, password ,role} = req.body
+ 
+ 
     try {
         const existingUser = await UModals.findOne({ email })
 
         if (existingUser) {
             res.status(403).send({
-                message: `${profile} is already been registered with this email ID`,
+                message: `${email} is already been registered with this email ID`,
                 status: 'false'
             })
         } else {
@@ -36,10 +34,10 @@ user.post("/signup", async (req, res) => {
                 } else {
                     try {
 
-                        await UModals.create({ email, password: hash, name , profile})
+                        await UModals.create({...req.body})
 
                         res.status(200).send({
-                            message: `${profile} account create successfully`,
+                            message: ` account create successfully`,
                             status: 'Ok'
                         })
 
@@ -64,45 +62,48 @@ user.post("/signup", async (req, res) => {
     }
 
 })
-
+ 
 user.post("/login", async (req, res) => {
-    const { email, password } = req.body
-    try {
+  const {email, password} = req.body;
 
-        const isUserExist = await UModals.findOne({ email })
+  try {
+    if (!email || !password) {
+      return res.send({message: "Missing Details"});
+    }
 
-        if (isUserExist) {
-            bcrypt.compare(password, isUserExist.password, function (err, result) {
-                var token = jwt.sign({ UserId: isUserExist._id }, SECRET);
-
+    const isExist = await UModals.findOne({email});
+    if (!isExist) {
+      return res.send({message: "Email does not exist"});
+    }
+    const checkDomain = email.split("@");
+    const domain = checkDomain[checkDomain.length - 1];
+ 
+        if(domain === "masaischool.com"){
+            if (domain) {
+                const token = jwt.sign({email, name: isExist.name, role: "Admin"}, "SECRET", {
+                  expiresIn: "7 days",
+                });
+                return res.send({token});
+              }
+              return res.send({message: "Failed"});
+        }
+        else{
+            bcrypt.compare(password, isExist.password, function (err, result) {
                 if (result) {
-                    res.status(200).send({
-                        message: 'Login Successfully',
-                        token,
-                        status: 'ok'
-                    })
-                } else {
-                    res.status(401).send({
-                        message: 'Wrong Credential',
-                        status: 'false'
-                    })
+                  const token = jwt.sign({email, name: isExist.name, role: isExist.role}, "SECRET", {
+                    expiresIn: "7 days",
+                  });
+                  return res.send({token});
                 }
-
+                return res.send({message: "Failed"});
             });
-        } else {
-            res.status(401).send({
-                message: 'Wrong Credential',
-                status: 'false'
-            })
         }
 
-    } catch (error) {
-        console.log(error)
-        res.status(404).send({
-            message: 'Something went wrong , Please try again',
-            status: 'false'
-        })
-    }
-})
+    
+  } catch (e) {
+    res.status(404).send({message: e.message});
+  }
+});
 
+ 
 module.exports = user
