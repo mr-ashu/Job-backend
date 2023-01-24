@@ -10,6 +10,6 @@ const jobPost = mongoose.Schema({
     timestamps : true
 })
 
-const jobModals = mongoose.model('joblist', jobPost)
+const JobModals = mongoose.model('joblist', jobPost)
 
-module.exports = { jobModals }
+module.exports =  JobModals 
