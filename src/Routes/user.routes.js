@@ -84,7 +84,7 @@ user.post("/login", async (req, res) => {
     }
     const checkDomain = email.split("@");
     const domain = checkDomain[checkDomain.length - 1];
-    console.log(domain, email)
+ 
         if(domain === "masaischool.com"){
             if (domain) {
                 const token = jwt.sign({email, name: isExist.name, role: "Admin"}, "SECRET", {
@@ -100,7 +100,7 @@ user.post("/login", async (req, res) => {
                   const token = jwt.sign({email, name: isExist.name, role: isExist.role}, "SECRET", {
                     expiresIn: "7 days",
                   });
-                  return res.send({token});
+                  return res.send(token,"Login Sucess");
                 }
                 return res.send({message: "Failed"});
             });

@@ -5,6 +5,7 @@ const cors = require("cors");
  
 const userRouter=require("./Routes/user.routes") 
 const   jobRouter  = require('./Routes/jobPost.routes')
+const   applyRouter  = require('./Routes/upload.routes')
  
 const connect = require("./Config/db")
 const PORT = process.env.PORT || 3000
@@ -18,9 +19,8 @@ app.use(cors({
 
 // ------------------------------------
 app.use("/", userRouter);
- 
 app.use("/job" , jobRouter)
- 
+app.use("/apply" , applyRouter)
 
 app.listen(PORT, async () => {
     await connect();
