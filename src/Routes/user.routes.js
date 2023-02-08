@@ -1,112 +1,56 @@
-const express = require('express')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
+const express = require("express");
+const User = require("../Schema/user.modal")
 
-const UModals =require("../Schema/user.modal")  
+const app = express.Router();
  
 
-const user = express.Router()
-
-user.get("/",async (req,res)=>{
-    const user=await UModals.find()
-    res.send(user)
-})
-user.post("/signup", async (req, res) => {
-
-    const { name, email, password } = req.body
-  let role;
-
-    if (email.includes("@masaischool.com")) {
-        role = 'admin'
-    } else {
-         role = 'user'
-    }
- 
+app.get("/", async (req, res) => {
     try {
-        const existingUser = await UModals.findOne({ email })
-
-        if (existingUser) {
-            res.status(403).send({
-                message: `${email} is already been registered with this email ID`,
-                status: 'false'
-            })
-        } else {
-            bcrypt.hash(password, 5, async function (err, hash) {
-                if (err) {
-                    res.status(404).send({
-                        message: 'Something went wrong , Please try again',
-                        status: 'false'
-                    })
-                } else {
-                    try {
-
-                      let u=  await UModals.create({name,email,password:hash,role})
-
-                        res.status(200).send({
-                            message: ` account create successfully`,
-                            status: 'Ok',
-                            user:u
-                        })
-
-                    } catch (error) {
-
-                        res.status(404).send({
-                            message: 'Something went wrong , Please try again',
-                            status: 'false'
-                        })
-
-                    }
-                }
-            });
-        }
-    } catch (error) {
-        console.log(error)
-        res.status(404).send({
-            message: 'Something went wrong , Please try again',
-            status: 'false'
-        })
-
+        let u = await User.find({}, { password: 0 })
+        res.send(u)
+    } catch (er) {
+        res.status(404).send(er.message)
+    }
+})
+app.post("/login", async (req, res) => {
+    let {email,password}=req.body;
+ 
+   try {
+    let u = await User.findOne({email,password})
+   
+    if(!u){
+    return res.status(401).send("Authentication Failed")
     }
 
+    res.send({
+        token:`${u.email}_#_${u.password}`,user:u
+})
+   } catch (e) {
+      res.status(404).send(e.message)
+   }
 })
  
-user.post("/login", async (req, res) => {
-  const {email, password} = req.body;
-
-  try {
-    if (!email || !password) {
-      return res.send({message: "Missing Details"});
-    }
-
-    const isExist = await UModals.findOne({email});
-    if (!isExist) {
-      return res.send({message: "Email does not exist"});
-    }
-    const checkDomain = email.split("@");
-    const domain = checkDomain[checkDomain.length - 1];
+app.post("/signup", async (req, res) => {
+    let {email,userId}=req.body;
  
-        if(domain === "masaischool.com"){
-            if (domain) {
-                const token = jwt.sign({email, name: isExist.name, role: "Admin"}, "SECRET");
-                return res.send({token:token,user:isExist});
-              }
-              return res.send({message: "Failed"});
-        }
-        else{
-            bcrypt.compare(password, isExist.password, function (err, result) {
-                if (result) {
-                  const token = jwt.sign({email, name: isExist.name, role: isExist.role}, "SECRET");
-                  return res.send({token:token,user:isExist});
-                }
-                return res.send({message: "Failed"});
-            });
-        }
-
-    
-  } catch (e) {
-    res.status(404).send({message: e.message});
-  }
-});
+   try {
+    let u =await User.findOne({email})
+    let v =await User.findOne({userId})
+   
+    if(u||v){
+        return res.status(404).send("user already exist")
+ 
+    }
+    else{ 
+    let user=await User.create({...req.body})
+    res.send([{token:`${user.email}_#_${user.password}`},{user}])
+    }
+   } catch (e) {
+      res.status(404).send(e.message)
+   }
+})
 
  
-module.exports = user
+
+
+module.exports = app;

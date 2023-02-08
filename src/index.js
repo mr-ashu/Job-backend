@@ -2,11 +2,11 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
- 
-const userRouter=require("./Routes/user.routes") 
-const   jobRouter  = require('./Routes/jobPost.routes')
-const   applyRouter  = require('./Routes/upload.routes')
- 
+
+const userRouter = require("./Routes/user.routes")
+const dataRouter = require('./Routes/data.routes')
+const cartRouter = require('./Routes/cart.routes')
+
 const connect = require("./Config/db")
 const PORT = process.env.PORT || 3000
 
@@ -14,13 +14,13 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin:"*"
+    origin: "*"
 }));
 
 // ------------------------------------
 app.use("/", userRouter);
-app.use("/job" , jobRouter)
-app.use("/apply" , applyRouter)
+app.use("/data", dataRouter)
+app.use("/saved", cartRouter)
 
 app.listen(PORT, async () => {
     await connect();

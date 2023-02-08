@@ -5,16 +5,12 @@ const userSchema = new Schema({
     type: String,
     unique: true
   },
+  mob:Number,
   password: String,
  
-  role: {
-    type: String,
-    enum: ['admin', 'user'],
-    required:true,
-    default: "user",
-  }
+ 
 });
 
-const UserModel = model("muser", userSchema);
+const UserModel = model("realuser", userSchema);
 
 module.exports = UserModel;
