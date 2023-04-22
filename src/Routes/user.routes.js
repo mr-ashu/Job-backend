@@ -31,13 +31,13 @@ app.post("/login", async (req, res) => {
 })
  
 app.post("/signup", async (req, res) => {
-    let {email,userId}=req.body;
+    let {email }=req.body;
  
    try {
     let u =await User.findOne({email})
-    let v =await User.findOne({userId})
+    
    
-    if(u||v){
+    if(u){
         return res.status(404).send("user already exist")
  
     }
